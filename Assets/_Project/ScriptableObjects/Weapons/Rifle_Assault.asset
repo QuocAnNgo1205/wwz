@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: Rifle_Assault
+  m_EditorClassIdentifier: Assembly-CSharp:ZombieCoopFPS.Data:WeaponDataSO
+  WeaponID: Rifle_Assault
+  DisplayName: Assault Rifle
+  Description: 
+  Icon: {fileID: 0}
+  Type: 1
+  FireMode: 0
+  BaseDamage: 30
+  HeadshotMultiplier: 2
+  Range: 100
+  DamageType: 0
+  FireRate: 0.1
+  BurstCount: 3
+  BurstDelay: 0.05
+  MagazineSize: 30
+  MaxAmmo: 300
+  ReloadTime: 2
+  BaseSpread: 0.5
+  MaxSpread: 5
+  SpreadIncreasePerShot: 0.1
+  SpreadRecoveryRate: 2
+  PurchaseCost: 500
+  AmmoCost: 50
+  Prefab: {fileID: 0}
+  MuzzleFlash: {fileID: 0}
+  ImpactEffect: {fileID: 0}
+  TracerPrefab: {fileID: 0}
+  FireSound: {fileID: 0}
+  ReloadSound: {fileID: 0}
+  EmptySound: {fileID: 0}

@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: TankZombie
+  m_EditorClassIdentifier: Assembly-CSharp:ZombieCoopFPS.Data:ZombieDataSO
+  Type: 1
+  DisplayName: TankZombie
+  Description: 
+  MaxHealth: 300
+  MoveSpeed: 2
+  AttackDamage: 25
+  AttackRange: 2.5
+  AttackCooldown: 1.5
+  DetectionRange: 20
+  HasSpecialAbility: 0
+  AbilityCooldown: 10
+  AbilityRange: 5
+  AbilityDamage: 50
+  KillReward: 50
+  ExperienceReward: 5
+  Prefab: {fileID: 2965383260960805785, guid: 56e8579e5bd1f4b499ffc0cbfc854455, type: 3}
+  MaterialVariants: []
+  AnimatorController: {fileID: 0}
+  IdleSounds: []
+  AttackSounds: []
+  HurtSounds: []
+  DeathSounds: []
+  DeathEffect: {fileID: 0}
+  BloodEffect: {fileID: 0}
+  SpawnEffect: {fileID: 0}

@@ -1,0 +1,62 @@
+# -------------------------------------------------------------------------
+# UNITY LINE ENDINGS & MERGE STRATEGIES (FIX LỖI WARNING CRLF)
+# -------------------------------------------------------------------------
+
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Unity YAML files (Scene, Prefab, Meta) should be treated as text
+*.unity text merge=unityyamlmerge eol=lf
+*.prefab text merge=unityyamlmerge eol=lf
+*.asset text merge=unityyamlmerge eol=lf
+*.meta text merge=unityyamlmerge eol=lf
+
+# C# scripts - Force LF to keep consistency across OS
+*.cs text diff=csharp eol=lf
+*.shader text eol=lf
+*.cginc text eol=lf
+*.json text eol=lf
+*.xml text eol=lf
+*.txt text eol=lf
+
+# -------------------------------------------------------------------------
+# BINARY FILES (DO NOT MODIFY LINE ENDINGS)
+# -------------------------------------------------------------------------
+
+# Images
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.psd binary
+*.tiff binary
+*.tga binary
+*.bmp binary
+*.exr binary
+
+# 3D Models (Dùng LFS nếu cài đặt, binary để an toàn)
+*.fbx filter=lfs diff=lfs merge=lfs -text
+*.obj filter=lfs diff=lfs merge=lfs -text
+*.blend filter=lfs diff=lfs merge=lfs -text
+*.dae binary
+*.3ds binary
+*.dxf binary
+
+# Audio (Dùng LFS)
+*.wav filter=lfs diff=lfs merge=lfs -text
+*.mp3 filter=lfs diff=lfs merge=lfs -text
+*.ogg filter=lfs diff=lfs merge=lfs -text
+*.aif binary
+*.aiff binary
+
+# Fonts
+*.ttf binary
+*.otf binary
+
+# Executables / Libraries
+*.dll binary
+*.so binary
+*.dylib binary
+*.exe binary
+*.zip filter=lfs diff=lfs merge=lfs -text
+*.7z filter=lfs diff=lfs merge=lfs -text
