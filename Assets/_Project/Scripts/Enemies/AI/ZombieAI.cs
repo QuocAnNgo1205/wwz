@@ -100,7 +100,7 @@ namespace ZombieCoopFPS.Enemy
             }
         }
         
-        private void Update()
+        protected virtual void Update()
         {
             if (!isAlive) return;
 
@@ -308,7 +308,7 @@ namespace ZombieCoopFPS.Enemy
             if (animator != null) animator.SetTrigger("Attack");
         }
         
-        public void TakeDamage(float damage, Vector3 source)
+        public virtual void TakeDamage(float damage, Vector3 source)
         {
             if (!isAlive) return;
             currentHealth -= damage;

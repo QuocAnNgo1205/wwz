@@ -1,10 +1,46 @@
 using UnityEngine;
 using System.Collections.Generic;
-using ZombieCoopFPS.Enemy;  
-using ZombieCoopFPS.Combat;
+using ZombieCoopFPS.Enemy; // Để nhận diện ZombieType
+using ZombieCoopFPS.Combat; // Để nhận diện các class combat nếu cần
 
 namespace ZombieCoopFPS.Data
 {
+    // --- BỔ SUNG CÁC ENUM CÒN THIẾU ---
+    
+    public enum WeaponType
+    {
+        Pistol,
+        Rifle,
+        Shotgun,
+        Sniper,
+        RocketLauncher,
+        Melee,
+        Grenade
+    }
+
+    public enum DamageType
+    {
+        Physical,
+        Explosive,
+        Fire,
+        Electric,
+        Poison
+    }
+
+    // (Lưu ý: ZombieType nên được định nghĩa bên namespace ZombieCoopFPS.Enemy. 
+    // Nếu vẫn báo lỗi thiếu ZombieType, hãy bỏ comment dòng dưới đây)
+    /*
+    public enum ZombieType
+    {
+        Standard,
+        Tank,
+        Exploder,
+        Grabber
+    }
+    */
+    
+    // ------------------------------------
+
     /// <summary>
     /// Game configuration - Central settings for the entire game
     /// Create: Assets/Create/Game/Game Configuration
@@ -254,181 +290,3 @@ namespace ZombieCoopFPS.Data
         Extreme
     }
 }
-
-namespace ZombieCoopFPS.Combat
-{
-    using ZombieCoopFPS.Data;
-    
-    /// <summary>
-    /// Weapon base class - Implements IWeapon interface
-    /// Use this as base for all weapon types
-    /// </summary>
-    public class WeaponBase : MonoBehaviour, IWeapon
-    {
-        [Header("Configuration")]
-        [SerializeField] protected WeaponDataSO weaponData;
-        
-        [Header("Components")]
-        [SerializeField] protected Transform muzzlePoint;
-        [SerializeField] protected Animator animator;
-        [SerializeField] protected AudioSource audioSource;
-        
-        protected int currentAmmo;
-        protected int reserveAmmo;
-        protected float nextFireTime;
-        protected float currentSpread;
-        protected bool isReloading;
-        
-        public WeaponDataSO WeaponData => weaponData;
-        public bool IsReloading => isReloading;
-        
-        protected virtual void Awake()
-        {
-            if (weaponData != null)
-            {
-                currentAmmo = weaponData.MagazineSize;
-                reserveAmmo = weaponData.MaxAmmo;
-            }
-        }
-        
-        public virtual void Fire()
-        {
-            if (!CanFire()) return;
-            
-            nextFireTime = Time.time + weaponData.FireRate;
-            currentAmmo--;
-            
-            // Raycast hit detection
-            Ray ray = GetFireRay();
-            if (Physics.Raycast(ray, out RaycastHit hit, weaponData.Range))
-            {
-                ProcessHit(hit);
-            }
-            
-            // Visual effects
-            PlayMuzzleFlash();
-            PlayFireSound();
-            
-            // Increase spread
-            currentSpread = Mathf.Min(currentSpread + weaponData.SpreadIncreasePerShot, 
-                                     weaponData.MaxSpread);
-        }
-        
-        protected virtual Ray GetFireRay()
-        {
-            Vector3 direction = muzzlePoint.forward;
-            
-            // Apply spread
-            direction += Random.insideUnitSphere * currentSpread;
-            direction.Normalize();
-            
-            return new Ray(muzzlePoint.position, direction);
-        }
-        
-        protected virtual void ProcessHit(RaycastHit hit)
-        {
-            IDamageable damageable = hit.collider.GetComponent<IDamageable>();
-            if (damageable != null)
-            {
-                float damage = weaponData.BaseDamage;
-                
-                // Check for headshot
-                if (hit.collider.CompareTag("Head"))
-                {
-                    damage *= weaponData.HeadshotMultiplier;
-                }
-                
-                DamageInfo damageInfo = new DamageInfo(
-                    damage, 
-                    hit.point, 
-                    weaponData.DamageType,
-                    gameObject
-                );
-                
-                damageable.TakeDamage(damageInfo);
-            }
-            
-            // Spawn impact effect
-            if (weaponData.ImpactEffect != null)
-            {
-                Instantiate(weaponData.ImpactEffect, hit.point, 
-                           Quaternion.LookRotation(hit.normal));
-            }
-        }
-        
-        public virtual void Reload()
-        {
-            if (isReloading || currentAmmo == weaponData.MagazineSize || reserveAmmo <= 0)
-                return;
-            
-            StartCoroutine(ReloadCoroutine());
-        }
-        
-        protected virtual System.Collections.IEnumerator ReloadCoroutine()
-        {
-            isReloading = true;
-            
-            if (audioSource && weaponData.ReloadSound)
-            {
-                audioSource.PlayOneShot(weaponData.ReloadSound);
-            }
-            
-            if (animator)
-            {
-                animator.SetTrigger("Reload");
-            }
-            
-            yield return new WaitForSeconds(weaponData.ReloadTime);
-            
-            int ammoNeeded = weaponData.MagazineSize - currentAmmo;
-            int ammoToReload = Mathf.Min(ammoNeeded, reserveAmmo);
-            
-            currentAmmo += ammoToReload;
-            reserveAmmo -= ammoToReload;
-            
-            isReloading = false;
-        }
-        
-        public virtual bool CanFire()
-        {
-            return currentAmmo > 0 && 
-                   Time.time >= nextFireTime && 
-                   !isReloading;
-        }
-        
-        protected virtual void Update()
-        {
-            // Recover spread over time
-            currentSpread = Mathf.Max(0, currentSpread - weaponData.SpreadRecoveryRate * Time.deltaTime);
-        }
-        
-        public int GetCurrentAmmo() => currentAmmo;
-        public int GetReserveAmmo() => reserveAmmo;
-        public WeaponType GetWeaponType() => weaponData.Type;
-        
-        public void AddAmmo(int amount)
-        {
-            reserveAmmo = Mathf.Min(reserveAmmo + amount, weaponData.MaxAmmo);
-        }
-        
-        protected virtual void PlayMuzzleFlash()
-        {
-            if (weaponData.MuzzleFlash != null && muzzlePoint != null)
-            {
-                GameObject flash = Instantiate(weaponData.MuzzleFlash, 
-                                              muzzlePoint.position, 
-                                              muzzlePoint.rotation);
-                Destroy(flash, 0.1f);
-            }
-        }
-        
-        protected virtual void PlayFireSound()
-        {
-            if (audioSource && weaponData.FireSound)
-            {
-                audioSource.PlayOneShot(weaponData.FireSound);
-            }
-        }
-    }
-}
-

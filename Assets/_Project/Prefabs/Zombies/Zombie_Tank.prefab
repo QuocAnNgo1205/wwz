@@ -130,7 +130,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ZombieCoopFPS.Enemy.ZombieAI
   zombieType: 0
-  zombieData: {fileID: 0}
+  zombieData: {fileID: 11400000, guid: 426cf3d0557776245826537fa96d80dd, type: 2}
   health: 100
   moveSpeed: 4
   attackDamage: 10

@@ -4,140 +4,135 @@ using ZombieCoopFPS.Utilities;
 
 namespace ZombieCoopFPS.Enemy
 {
+    // Đã xóa enum ZombieType ở đây để tránh lỗi CS0101
+
     public class ZombieManager : MonoBehaviour
     {
-        [Header("Spawning Configuration")]
-        [SerializeField] private int maxActiveZombies = 200;
-        [SerializeField] private float baseSpawnRate = 1f;
-        [SerializeField] private int zombiesPerWave = 5;
-        [SerializeField] private Transform[] spawnPoints;
+        public static ZombieManager Instance { get; private set; }
+
+        [Header("Settings")]
+        [SerializeField] private int maxActiveZombies = 500;
         
-        [Header("Pool Configuration")]
-        [SerializeField] private GameObject swarmZombiePrefab; 
+        // Prefab References
+        [SerializeField] private GameObject standardPrefab;
+        [SerializeField] private GameObject tankPrefab;
+        [SerializeField] private GameObject exploderPrefab;
         
-        private ObjectPool<ZombieAI> zombiePool;
+        private ObjectPool<ZombieAI> standardPool;
         private List<ZombieAI> activeZombies = new List<ZombieAI>();
-        private bool isSpawning = false;
-        private Transform playerTransform;
         
-        public int ActiveZombieCount => activeZombies.Count;
-        
+        // --- FIX LỖI 1: Hồi phục tên biến cũ ---
+        public int ActiveCount => activeZombies.Count;
+        public int ActiveZombieCount => activeZombies.Count; // Alias cho code cũ
+        // ---------------------------------------
+
+        private void Awake()
+        {
+            if (Instance == null) Instance = this;
+            else Destroy(gameObject);
+            
+            Initialize();
+        }
+
         public void Initialize()
         {
-            // 1. Tự động tìm Prefab nếu chưa gán trong Inspector
-            if (swarmZombiePrefab == null)
-            {
-                // Tool setup đặt tên là "Zombie_Standard", không phải "StandardZombie"
-                swarmZombiePrefab = Resources.Load<GameObject>("Zombies/Zombie_Standard");
-            }
+            if (!standardPrefab) standardPrefab = Resources.Load<GameObject>("Zombies/Zombie_Standard");
+            if (!tankPrefab) tankPrefab = Resources.Load<GameObject>("Zombies/Zombie_Tank");
+            if (!exploderPrefab) exploderPrefab = Resources.Load<GameObject>("Zombies/Zombie_Exploder");
 
-            // 2. Kiểm tra lại lần nữa xem có Prefab chưa
-            if (swarmZombiePrefab == null)
+            if (standardPool == null && standardPrefab != null)
             {
-                Debug.LogError("❌ LỖI NGHIÊM TRỌNG: Không tìm thấy Prefab Zombie! Hãy gán vào ô 'Swarm Zombie Prefab' trong Inspector của GameObject ZombieManager.");
-                return;
+                standardPool = new ObjectPool<ZombieAI>(standardPrefab.GetComponent<ZombieAI>(), 100, 1000);
             }
-
-            // 3. Kiểm tra xem Prefab có gắn script ZombieAI chưa
-            if (swarmZombiePrefab.GetComponent<ZombieAI>() == null)
-            {
-                Debug.LogError("❌ LỖI: Prefab Zombie có tồn tại nhưng thiếu script 'ZombieAI'. Hãy chạy lại Setup Window -> Rebuild Scene.");
-                return;
-            }
-
-            // 4. Tạo Pool
-            if (zombiePool == null)
-            {
-                zombiePool = new ObjectPool<ZombieAI>(
-                    swarmZombiePrefab.GetComponent<ZombieAI>(),
-                    50, 300 
-                );
-                Debug.Log("✓ Zombie Pool initialized successfully.");
-            }
-            
-            GameObject player = GameObject.FindGameObjectWithTag("Player");
-            if (player != null) playerTransform = player.transform;
         }
-        
-        private void Start() => Initialize();
 
+        // --- FIX LỖI 2: Hồi phục hàm Start/Stop Spawning ---
+        // Các hàm này sẽ gọi sang HordeWaveSystem hoặc để trống để tránh lỗi compile
         public void StartSpawning()
         {
-            isSpawning = true;
-            InvokeRepeating(nameof(SpawnWave), 0f, baseSpawnRate);
+            Debug.Log("⚠️ ZombieManager: Spawning is now handled by HordeWaveSystem.");
+            // Nếu muốn kích hoạt wave ngay lập tức:
+            HordeWaveSystem waveSys = FindFirstObjectByType<HordeWaveSystem>();
+            if (waveSys != null && !waveSys.IsWaveActive) waveSys.StartNextWave();
         }
-        
+
         public void StopSpawning()
         {
-            isSpawning = false;
-            CancelInvoke(nameof(SpawnWave));
+            // HordeWaveSystem tự quản lý việc dừng, hàm này để trống để GameManager không báo lỗi
         }
-        
-        private void SpawnWave()
-        {
-            if (activeZombies.Count >= maxActiveZombies) return;
-            
-            int count = Mathf.Min(zombiesPerWave, maxActiveZombies - activeZombies.Count);
-            for (int i = 0; i < count; i++) SpawnZombie();
-        }
-        
-        public ZombieAI SpawnZombie(Vector3? position = null, ZombieType type = ZombieType.Standard)
-        {
-            // Khởi tạo lại nếu chưa có (Phòng hờ)
-            if (zombiePool == null) Initialize();
+        // ---------------------------------------------------
 
-            // --- FIX LỖI NULL REFERENCE TẠI ĐÂY ---
-            // Nếu Initialize thất bại (vẫn null), thì dừng lại ngay, đừng chạy tiếp lệnh Get()
-            if (zombiePool == null) 
+        public ZombieAI SpawnZombie(Vector3? pos = null, ZombieType type = ZombieType.Standard)
+        {
+            if (activeZombies.Count >= maxActiveZombies) return null;
+
+            Vector3 spawnPos = pos ?? GetRandomSpawnPos();
+            ZombieAI zombie = null;
+
+            // Logic phân loại
+            if (type == ZombieType.Standard)
             {
-                Debug.LogWarning("⚠️ Không thể Spawn Zombie vì Pool chưa khởi tạo (Thiếu Prefab).");
-                return null;
+                if(standardPool != null)
+                    zombie = standardPool.Get(spawnPos, Quaternion.identity);
             }
-            // -------------------------------------
+            else
+            {
+                GameObject prefab = null;
+                if (type == ZombieType.Tank) prefab = tankPrefab;
+                else if (type == ZombieType.Exploder) prefab = exploderPrefab;
+                if (type == ZombieType.Grabber) prefab = standardPrefab; 
 
-            Vector3 spawnPos = position ?? GetRandomSpawnPoint();
-            ZombieAI zombie = zombiePool.Get(spawnPos, Quaternion.identity);
-            
+                if (prefab != null)
+                {
+                    GameObject obj = Instantiate(prefab, spawnPos, Quaternion.identity);
+                    zombie = obj.GetComponent<ZombieAI>();
+                }
+            }
+
             if (zombie != null)
             {
                 activeZombies.Add(zombie);
-                zombie.OnDeath += HandleZombieDeath;
-                zombie.Initialize(); 
+                zombie.OnDeath += HandleDeath;
+                zombie.Initialize();
             }
             return zombie;
         }
-        
-        private void HandleZombieDeath(ZombieAI zombie)
-        {
-            zombie.OnDeath -= HandleZombieDeath;
-            activeZombies.Remove(zombie);
-            zombiePool.Return(zombie);
-        }
 
-        public void ResetSystem()
+        private void HandleDeath(ZombieAI z)
         {
-            StopSpawning();
+            z.OnDeath -= HandleDeath;
+            activeZombies.Remove(z);
+            
+            if (z.Type == ZombieType.Standard && standardPool != null) 
+            {
+                standardPool.Return(z);
+            }
+            else 
+            {
+                Destroy(z.gameObject, 2f);
+            }
+        }
+        
+        public void ResetSystem() 
+        {
+            StopAllCoroutines();
             for (int i = activeZombies.Count - 1; i >= 0; i--)
             {
-                var zombie = activeZombies[i];
-                if (zombie != null)
+                var z = activeZombies[i];
+                if (z != null)
                 {
-                    zombie.OnDeath -= HandleZombieDeath;
-                    zombiePool.Return(zombie);
+                    z.OnDeath -= HandleDeath;
+                    if(z.Type == ZombieType.Standard && standardPool != null) standardPool.Return(z);
+                    else Destroy(z.gameObject);
                 }
             }
             activeZombies.Clear();
         }
-        
-        private Vector3 GetRandomSpawnPoint()
+
+        private Vector3 GetRandomSpawnPos()
         {
-            if (spawnPoints != null && spawnPoints.Length > 0)
-                return spawnPoints[Random.Range(0, spawnPoints.Length)].position;
-                
-            if (playerTransform) {
-                Vector2 r = Random.insideUnitCircle * 20f;
-                return playerTransform.position + new Vector3(r.x, 0, r.y);
-            }
+            GameObject p = GameObject.FindGameObjectWithTag("Player");
+            if (p) return p.transform.position + (Vector3)Random.insideUnitCircle * 25f;
             return Vector3.zero;
         }
     }

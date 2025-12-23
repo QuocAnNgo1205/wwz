@@ -10,24 +10,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 0}
-  m_Name: ExploderZombie
+  m_Name: Zombie_Standard_Data
   m_EditorClassIdentifier: Assembly-CSharp:ZombieCoopFPS.Data:ZombieDataSO
-  Type: 2
-  DisplayName: ExploderZombie
+  Type: 0
+  DisplayName: zom npc
   Description: 
-  MaxHealth: 80
-  MoveSpeed: 4
-  AttackDamage: 50
-  AttackRange: 3
+  MaxHealth: 100
+  MoveSpeed: 3
+  AttackDamage: 10
+  AttackRange: 2
   AttackCooldown: 1.5
   DetectionRange: 20
   HasSpecialAbility: 0
   AbilityCooldown: 10
   AbilityRange: 5
   AbilityDamage: 50
-  KillReward: 30
+  KillReward: 10
   ExperienceReward: 5
-  Prefab: {fileID: 2838734319707570272, guid: 943e4cc428502bd4780ac02a5f965f63, type: 3}
+  Prefab: {fileID: 0}
   MaterialVariants: []
   AnimatorController: {fileID: 0}
   IdleSounds: []

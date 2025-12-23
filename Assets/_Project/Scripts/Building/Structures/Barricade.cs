@@ -50,5 +50,7 @@ namespace ZombieCoopFPS.Building
         public bool CanPlaceAt(Vector3 pos, Quaternion rot) => true;
         public void OnPlaced() { }
         public void OnDestroyed() { Destroy(gameObject); }
+        public void OnInteractorEnter(GameObject interactor) { }
+        public void OnInteractorExit(GameObject interactor) { }
     }
 }

@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 0}
-  m_Name: Rifle_Assault
+  m_Name: Rife_Data
   m_EditorClassIdentifier: Assembly-CSharp:ZombieCoopFPS.Data:WeaponDataSO
-  WeaponID: Rifle_Assault
-  DisplayName: Assault Rifle
+  WeaponID: 
+  DisplayName: AK-47
   Description: 
   Icon: {fileID: 0}
   Type: 1
-  FireMode: 0
-  BaseDamage: 30
+  FireMode: 1
+  BaseDamage: 25
   HeadshotMultiplier: 2
   Range: 100
   DamageType: 0
